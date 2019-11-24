@@ -2296,7 +2296,7 @@ namespace Switch_Backup_Manager
                 {
                     fileStream.Position = 16 + 24 * PFS0.PFS0_Headers[0].FileCount + array3[n].Name_ptr;
                     int num4;
-                    while ((num4 = fileStream.ReadByte()) != 0 && num4 != 0)
+                    while ((num4 = fileStream.ReadByte()) > 0 && num4 > 0)
                     {
                         chars.Add((char)num4);
                     }
@@ -3202,38 +3202,42 @@ namespace Switch_Backup_Manager
                     }
                 }
                 PFS0Offset = gameNcaOffset + 32768;
-                fileStream.Position = PFS0Offset;
-                fileStream.Read(array3, 0, 16);
-                PFS0.PFS0_Headers[0] = new PFS0.PFS0_Header(array3);
-                PFS0.PFS0_Entry[] array8;
-                array8 = new PFS0.PFS0_Entry[PFS0.PFS0_Headers[0].FileCount];
 
-                for (int m = 0; m < PFS0.PFS0_Headers[0].FileCount; m++)
+                if (PFS0Offset < fileStream.Length)
                 {
-                    fileStream.Position = PFS0Offset + 16 + 24 * m;
-                    fileStream.Read(array4, 0, 24);
-                    array8[m] = new PFS0.PFS0_Entry(array4);
-                    PFS0Size += array8[m].Size;
+                    fileStream.Position = PFS0Offset;
+                    fileStream.Read(array3, 0, 16);
+                    PFS0.PFS0_Headers[0] = new PFS0.PFS0_Header(array3);
+                    PFS0.PFS0_Entry[] array8;
+                    array8 = new PFS0.PFS0_Entry[PFS0.PFS0_Headers[0].FileCount];
 
-                    if (m == 1) //Dump of TitleID 01009AA000FAA000 reports more than 10000000 files here, so it breaks the program. Standard is to have only 2 files
+                    for (int m = 0; m < PFS0.PFS0_Headers[0].FileCount; m++)
                     {
-                        break;
-                    }
-                }
-                for (int n = 0; n < PFS0.PFS0_Headers[0].FileCount; n++)
-                {
-                    fileStream.Position = PFS0Offset + 16 + 24 * PFS0.PFS0_Headers[0].FileCount + array8[n].Name_ptr;
-                    int num4;
-                    while ((num4 = fileStream.ReadByte()) != 0 && num4 != 0)
-                    {
-                        chars.Add((char)num4);
-                    }
-                    array8[n].Name = new string(chars.ToArray());
-                    chars.Clear();
+                        fileStream.Position = PFS0Offset + 16 + 24 * m;
+                        fileStream.Read(array4, 0, 24);
+                        array8[m] = new PFS0.PFS0_Entry(array4);
+                        PFS0Size += array8[m].Size;
 
-                    if (n == 1) //Dump of TitleID 01009AA000FAA000 reports more than 10000000 files here, so it breaks the program. Standard is to have only 2 files
+                        if (m == 1) //Dump of TitleID 01009AA000FAA000 reports more than 10000000 files here, so it breaks the program. Standard is to have only 2 files
+                        {
+                            break;
+                        }
+                    }
+                    for (int n = 0; n < PFS0.PFS0_Headers[0].FileCount; n++)
                     {
-                        break;
+                        fileStream.Position = PFS0Offset + 16 + 24 * PFS0.PFS0_Headers[0].FileCount + array8[n].Name_ptr;
+                        int num4;
+                        while ((num4 = fileStream.ReadByte()) > 0 && num4 > 0)
+                        {
+                            chars.Add((char)num4);
+                        }
+                        array8[n].Name = new string(chars.ToArray());
+                        chars.Clear();
+
+                        if (n == 1) //Dump of TitleID 01009AA000FAA000 reports more than 10000000 files here, so it breaks the program. Standard is to have only 2 files
+                        {
+                            break;
+                        }
                     }
                 }
 
